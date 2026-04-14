@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
 import Home from './pages/Home';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -12,21 +13,24 @@ import AuthSuccess from './pages/AuthSuccess';
 import Dashboard from './pages/Dashboard';
 import ResetPassword from './pages/ResetPassword';
 
+// ✅ Protected Route
+const ProtectedRoute = ({ user }) => {
+  return user ? <Dashboard user={user} /> : <Navigate to="/login" />;
+};
+
 export default function App() {
-  const [user, setUser] = useState(null);
 
-  // Check if user is already logged in when app starts
-  useEffect(() => {
-    const savedUser = localStorage.getItem("userData");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
+  // ✅ Load user from localStorage ONCE
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("userData");
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
     }
-  }, []);
+  });
 
+  // ✅ Router (STABLE)
   const router = createBrowserRouter([
     { path: '/', element: <Home /> },
     { path: '/signup', element: <Signup /> },
@@ -38,10 +42,7 @@ export default function App() {
     { path: '/reset-password/:email/:otp', element: <ResetPassword /> },
     { path: '/change-password/:email/:otp', element: <ChangePassword /> },
     { path: '/auth-success', element: <AuthSuccess /> },
-    {
-      path: '/dashboard',
-      element: user ? <Dashboard user={user} /> : <Navigate to="/login" />
-    },
+    { path: '/dashboard', element: <ProtectedRoute user={user} /> }
   ]);
 
   return <RouterProvider router={router} />;

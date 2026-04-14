@@ -1,15 +1,34 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import './Home.css'
 
-const Home = () => (
-    <div className="min-h-screen flex items-center justify-center bg-green-100">
-        <div className="bg-white p-8 rounded-2xl shadow-md text-center">
-            <h1 className="text-2xl font-bold mb-4">Welcome to PDF Generator</h1>
-            <Link to="/signup" className="px-6 py-3 bg-green-600 text-white rounded hover:bg-green-500">
-                Go to Sign Up
-            </Link>
+const Home = () => {
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => { setMounted(true) }, [])
+
+    return (
+        <div className="home-wrapper">
+            <div className="home-grid" />
+            <div className="home-orb home-orb-1" />
+            <div className="home-orb home-orb-2" />
+            <div className="home-orb home-orb-3" />
+            <div className="home-orb home-orb-4" />
+            <div className="home-orb home-orb-5" />
+
+            <div className={`home-card ${mounted ? 'visible' : ''}`}>
+                <div className="home-icon">📄</div>
+                <div className="home-badge">✦ Free to use ✦</div>
+                <h1 className="home-title">
+                    PDF <span>Generator</span>
+                </h1>
+                <p className="home-subtitle">Create beautiful documents in seconds.</p>
+                <div className="home-buttons">
+                    <Link to="/signup" className="btn-primary">Get Started →</Link>
+                    <Link to="/login" className="btn-secondary">Login</Link>
+                </div>
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
 export default Home

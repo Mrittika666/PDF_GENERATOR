@@ -27,12 +27,13 @@ const Signup = () => {
         e.preventDefault()
         try {
             setIsLoading(true)
-            const res = await axios.post("http://localhost:3000/user/register", formData, { headers: { "Content-Type": "application/json" } })
-            if (res.data.success) {
+            const res = await axios.post("http://localhost:3000/user/register", formData, {
+                headers: { "Content-Type": "application/json" }
+              })
                 toast.success(res.data.message)
                 navigate('/verify')  // go to check email page
             }
-        } catch (error) {
+         catch (error) {
             toast.error(error.response?.data?.message || "Something went wrong!")
         } finally {
             setIsLoading(false)

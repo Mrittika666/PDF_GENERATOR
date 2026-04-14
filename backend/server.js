@@ -1,35 +1,29 @@
-import express from "express";
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import dotenv from "dotenv";
-import connectDB from "./database/db.js";
-import userRoute from "./routes/userRoute.js";
-import cors from "cors";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '.env') });
+console.log("ENV TEST:", process.env.MONGO_URI);// ← explicit path
+
+import express from "express";
+import cors from "cors";
+import connectDB from "./database/db.js";
+import userRoute from "./routes/userRoutes.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
 app.use(express.json());
-
-// ✅ CORS configuration for frontend
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "http://localhost:5173",
     credentials: true,
 }));
 
-// Database connection
 connectDB();
 
-// Routes
 app.use("/user", userRoute);
+app.get("/", (req, res) => res.send("API is running 🚀"));
 
-// Test route (VERY IMPORTANT for debugging)
-app.get("/", (req, res) => {
-    res.send("API is running...");
-});
-
-// Listen on all network interfaces
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

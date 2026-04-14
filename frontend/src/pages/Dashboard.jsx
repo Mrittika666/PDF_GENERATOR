@@ -27,8 +27,7 @@ const Dashboard = ({ user }) => {
             </div>
         );
     }
-    // ... baki code
-    // ... baki code;
+    
 
     const [generating, setGenerating] = useState(false);
     const [showQR, setShowQR] = useState(false);

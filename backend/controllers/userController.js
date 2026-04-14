@@ -122,12 +122,12 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        if (!user.isVerified) {
-            return res.status(400).json({
-                success: false,
-                message: "Verify your account first"
-            });
-        }
+      //  if (!user.isVerified) {
+       //     return res.status(400).json({
+        //        success: false,
+         //       message: "Verify your account first"
+         //   });
+       // }
 
         // ✅ Generate Access Token
         const accessToken = jwt.sign(

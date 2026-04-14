@@ -22,21 +22,31 @@ const Login = ({ setUser }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const res = await axios.post("http://localhost:3000/user/login", formData);
+        setIsLoading(true);
 
-            // Login.jsx mein handleSubmit ke andar change karein
+        try {
+            const res = await axios.post(
+                "http://localhost:3000/user/login",
+                formData
+            );
+
+            console.log("LOGIN RESPONSE:", res.data);
+
             if (res.data.success) {
                 localStorage.setItem("accessToken", res.data.accessToken);
-                // User data ko bhi save karein taaki refresh par loading na aaye
                 localStorage.setItem("userData", JSON.stringify(res.data.user));
 
-                setUser(res.data.user); // App.jsx ki state update karein
+                setUser(res.data.user);
+
                 toast.success("Login Success!");
+
                 navigate("/dashboard");
-            }
+              }
+
         } catch (error) {
             toast.error(error.response?.data?.message || "Login failed");
+        } finally {
+            setIsLoading(false);
         }
     };
 

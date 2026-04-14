@@ -16,6 +16,9 @@ import {
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middleware/isAuthenticated.js";
 
+
+
+
 const router = express.Router();
 
 // Public Routes
@@ -35,4 +38,9 @@ router.post("/upgrade-premium", isAuthenticated, upgradeToPremium);
 router.post("/save-file", saveFileRecord);
 router.get("/get-files/:email", getUserFiles);
 router.post("/delete-file", deleteFile);
+router.post("/login", loginUser);
+
+router.get("/", (req, res) => {
+    res.send("User route working");
+});
 export default router;
