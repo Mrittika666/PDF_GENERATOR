@@ -42,19 +42,23 @@ export const registerUser = async (req, res) => {
             { expiresIn: "10m" }
         );
 
-        // 🔥 SAFE EMAIL SEND (won't crash server)
-        const mailSent = await verifyMail(token, email);
-
-        if (!mailSent) {
-            console.log("⚠️ Email failed but user created");
-        }
-
         newUser.token = token;
         await newUser.save();
 
+        // 🔥 EMAIL SEND (WAIT PROPERLY)
+        const mailSent = await verifyMail(token, email);
+
+        if (!mailSent) {
+            return res.status(500).json({
+                success: false,
+                message: "User created but email failed to send"
+            });
+        }
+
         return res.status(201).json({
             success: true,
-            message: "Signup successful. Check email to verify account."
+            message: "Signup successful. Verification email sent.",
+            data: newUser
         });
 
     } catch (error) {
@@ -70,7 +74,7 @@ export const verification = async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!authHeader) {
             return res.status(401).json({
                 success: false,
                 message: "Token missing"

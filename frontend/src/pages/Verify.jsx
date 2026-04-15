@@ -12,12 +12,10 @@ const Verify = () => {
         const verifyEmail = async () => {
             try {
                 const res = await axios.post(
-                    `${BASE_URL}/user/verify`,
+                    "https://pdf-generator-t21m.onrender.com/user/verify",
                     {},
                     {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                        headers: { Authorization: `Bearer ${token}` }
                     }
                 );
 

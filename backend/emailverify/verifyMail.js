@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,14 +9,8 @@ const __dirname = path.dirname(__filename);
 
 export const verifyMail = async (token, email) => {
     try {
-        console.log("🔥 VERIFY MAIL FUNCTION CALLED");
-        console.log("📩 Recipient:", email);
+        console.log("🔥 VERIFY MAIL TRIGGERED");
 
-        // 🔍 DEBUG ENV CHECK
-        console.log("MAIL_USER:", process.env.MAIL_USER);
-        console.log("MAIL_PASS length:", process.env.MAIL_PASS?.length);
-
-        // Read template
         const emailTemplateSource = fs.readFileSync(
             path.join(__dirname, "template.hbs"),
             "utf-8"
@@ -30,26 +23,14 @@ export const verifyMail = async (token, email) => {
             frontendUrl: process.env.FRONTEND_URL
         });
 
-        // Create transporter
         const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false,
+            service: "gmail",
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
             }
         });
-        
-        try {
-            await transporter.verify();
-            console.log("✅ SMTP VERIFIED SUCCESS");
-        } catch (err) {
-            console.log("❌ SMTP VERIFY FAILED:", err.message);
-            return false;
-        }
 
-        // Send mail
         const info = await transporter.sendMail({
             from: `PDF Generator <${process.env.MAIL_USER}>`,
             to: email,
@@ -57,14 +38,11 @@ export const verifyMail = async (token, email) => {
             html: htmlToSend
         });
 
-        console.log("✅ EMAIL SENT SUCCESSFULLY");
-        console.log("Message ID:", info.messageId);
+        console.log("✅ EMAIL SENT SUCCESSFULLY:", info.messageId);
 
-        return true;
-
+        return true; // IMPORTANT
     } catch (error) {
-        console.error("❌ EMAIL FAILED:");
-        console.error(error.message || error);
+        console.log("❌ EMAIL ERROR:", error.message);
         return false;
     }
 };
