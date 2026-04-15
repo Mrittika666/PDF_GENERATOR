@@ -1,4 +1,3 @@
-import express from "express";
 import {
     registerUser,
     verification,
@@ -7,6 +6,7 @@ import {
     forgotPassword,
     resetPasswordWithOtp,
     resendResetOtp,
+    changePassword,
     verifyOtp,
     upgradeToPremium,
     saveFileRecord,
