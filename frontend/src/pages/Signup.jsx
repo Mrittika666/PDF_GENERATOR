@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Background from "../assets/Background.jpeg"
+import BASE_URL from '../config'
 
 const Signup = () => {
     const navigate = useNavigate()
@@ -27,7 +28,7 @@ const Signup = () => {
         e.preventDefault()
         try {
             setIsLoading(true)
-            const res = await axios.post("http://localhost:3000/user/register", formData, {
+            const res = await axios.post(`${BASE_URL}/user/register`, formData {
                 headers: { "Content-Type": "application/json" }
               })
                 toast.success(res.data.message)

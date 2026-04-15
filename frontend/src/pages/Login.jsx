@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Background from "../assets/Background.jpeg"
+import BASE_URL from '../config'
 
 const Login = ({ setUser }) => {
     const navigate = useNavigate()
@@ -25,10 +26,8 @@ const Login = ({ setUser }) => {
         setIsLoading(true);
 
         try {
-            const res = await axios.post(
-                "http://localhost:3000/user/login",
-                formData
-            );
+            const res = await axios.post(`${BASE_URL}/user/login`, formData);
+            
 
             console.log("LOGIN RESPONSE:", res.data);
 
