@@ -28,8 +28,7 @@ app.use(cors({
     credentials: true,
 }));
 
-
-app.use("/user", userRoute);
+app.use("/api/user", userRoutes);
 app.get("/", (req, res) => res.send("API is running 🚀"));
 
 connectDB()
