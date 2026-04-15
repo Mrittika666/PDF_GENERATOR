@@ -11,7 +11,7 @@ console.log("ENV TEST:", process.env.MONGO_URI);// ← explicit path
 import express from "express";
 import cors from "cors";
 import connectDB from "./database/db.js";
-import userRoute from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 app.use(express.json());

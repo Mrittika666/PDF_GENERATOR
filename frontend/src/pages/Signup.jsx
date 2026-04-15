@@ -84,7 +84,13 @@ const Signup = () => {
 
                                     <div className="grid gap-2">
                                         <Label>Password</Label>
-                                        <Input name="password" value={formData.password} onChange={handleChange} required />
+                                        <Input
+                                            type="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required
+                                        />
                                     </div>
                                 </div>
                             </CardContent>
