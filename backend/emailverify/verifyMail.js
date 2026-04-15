@@ -48,7 +48,8 @@ export const verifyMail = async (token, email) => {
         // Send email
         transporter.sendMail(mailConfigurations, function (error, info) {
             if (error) {
-                throw new Error(error)
+                console.error("EMAIL ERROR:", error);
+                return;
             }
             console.log('Email sent successfully')
             console.log(info)
