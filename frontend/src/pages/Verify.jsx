@@ -6,22 +6,43 @@ export default function Verify() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch("https://pdf-generator-t21m.onrender.com/api/user/verify", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
+        const verifyUser = async () => {
+            try {
+                const res = await fetch(
+                    "https://pdf-generator-t21m.onrender.com/api/user/verify",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+
+                const data = await res.json();
+                console.log("VERIFY RESPONSE:", data);
+
                 if (data.success) {
                     alert("Email Verified ✅");
-                    navigate("/login");
+
+                    // 👉 1 sec wait then redirect
+                    setTimeout(() => {
+                        navigate("/login");
+                    }, 1000);
+
                 } else {
                     alert("Verification Failed ❌");
                 }
-            });
-    }, []);
+
+            } catch (err) {
+                console.log("VERIFY ERROR:", err);
+                alert("Something went wrong");
+            }
+        };
+
+        if (token) verifyUser();
+
+    }, [token, navigate]);
 
     return <h1>Verifying...</h1>;
 }
