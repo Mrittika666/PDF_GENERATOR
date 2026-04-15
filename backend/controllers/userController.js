@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 // ======================== REGISTER ========================
 export const registerUser = async (req, res) => {
     try {
+        console.log("🔥 REGISTER API HIT");
         const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
@@ -43,7 +44,11 @@ export const registerUser = async (req, res) => {
         newUser.token = token;
         await newUser.save();
 
+        console.log("➡️ Calling verifyMail...");
+
         const mailSent = await verifyMail(token, email);
+
+        console.log("⬅️ verifyMail returned:", mailSent);
 
         if (!mailSent) {
             return res.status(500).json({

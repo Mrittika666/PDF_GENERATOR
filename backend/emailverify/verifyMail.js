@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+console.log("📩 verifyMail function ENTERED");
 
 export const verifyMail = async (token, email) => {
     try {
