@@ -14,23 +14,28 @@ export const verifyMail = async (token, email) => {
             }
         });
 
-        const verifyUrl = `${process.env.FRONTEND_URL}/verify/${token}`;
+        await transporter.verify();
+        console.log("SMTP READY ✅");
 
-        await transporter.sendMail({
+        const link = `${process.env.FRONTEND_URL}/verify/${token}`;
+
+        console.log("SENDING TO:", email);
+        console.log("LINK:", link);
+
+        const info = await transporter.sendMail({
             from: process.env.MAIL_USER,
             to: email,
-            subject: "Verify your email",
-            html: `
-                <h2>Email Verification</h2>
-                <a href="${verifyUrl}">Click to Verify</a>
-            `
+            subject: "Verify Email",
+            html: `<h2>Click below to verify</h2>
+                   <a href="${link}">VERIFY</a>`
         });
 
-        console.log("✅ MAIL SENT");
+        console.log("MAIL SENT ✅", info.messageId);
+
         return true;
 
-    } catch (error) {
-        console.log("❌ MAIL ERROR:", error);
+    } catch (err) {
+        console.log("❌ MAIL ERROR:", err.message);
         return false;
     }
 };
