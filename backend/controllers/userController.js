@@ -226,16 +226,14 @@ export const forgotPassword = async (req, res) => {
             }
         });
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: process.env.MAIL_USER,
             to: user.email,
             subject: "Password Reset OTP",
-            html: `
-          <h3>Your Password Reset OTP</h3>
-          <h2>${otp}</h2>
-          <p>This OTP will expire in 10 minutes.</p>
-        `
+            html: `<h2>${otp}</h2>`
         });
+
+        console.log("EMAIL SENT SUCCESS:", info.messageId);
 
         res.status(200).json({
             success: true,
@@ -243,9 +241,11 @@ export const forgotPassword = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
+        console.log("EMAIL ERROR:", error);
+
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Email sending failed"
         });
     }
 };
