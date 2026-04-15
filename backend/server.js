@@ -28,10 +28,20 @@ app.use(cors({
     credentials: true,
 }));
 
-connectDB();
 
 app.use("/user", userRoute);
 app.get("/", (req, res) => res.send("API is running 🚀"));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+connectDB()
+    .then(() => {
+        console.log("MongoDB connected ✅"); // 👈 added
+
+        const PORT = process.env.PORT || 3000;
+
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.log("DB Connection Failed ❌:", err);
+    });
