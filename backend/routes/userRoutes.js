@@ -1,3 +1,5 @@
+import express from "express";
+
 import {
     registerUser,
     verification,
@@ -18,28 +20,27 @@ import { isAuthenticated } from "../middleware/isAuthenticated.js";
 
 const router = express.Router();
 
-// ================= PUBLIC ROUTES =================
+// PUBLIC
 router.post("/register", registerUser);
 router.post("/verify", verification);
 router.post("/login", loginUser);
 
+// PASSWORD
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPasswordWithOtp);
 router.post("/resend-otp", resendResetOtp);
 
-// ================= PROTECTED ROUTES =================
+// PROTECTED
 router.post("/logout", isAuthenticated, logoutUser);
 router.post("/upgrade-premium", isAuthenticated, upgradeToPremium);
 
-
-
-// ================= FILE ROUTES =================
+// FILE
 router.post("/save-file", saveFileRecord);
 router.get("/get-files/:email", getUserFiles);
 router.post("/delete-file", deleteFile);
 
-// ================= TEST ROUTE =================
+// TEST
 router.get("/", (req, res) => {
     res.send("User route working");
 });
