@@ -1,20 +1,20 @@
 import nodemailer from "nodemailer";
-console.log("📩 verifyMail function ENTERED");
 
 export const verifyMail = async (token, email) => {
     try {
-        console.log("🔥 VERIFY MAIL FUNCTION CALLED");
+        console.log("📩 verifyMail function ENTERED");
+        console.log("👉 MAIL_USER:", process.env.MAIL_USER);
+        console.log("👉 MAIL_PASS LENGTH:", process.env.MAIL_PASS?.length);
 
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
             }
         });
-
-        console.log("👉 MAIL_USER:", process.env.MAIL_USER);
-        console.log("👉 MAIL_PASS LENGTH:", process.env.MAIL_PASS?.length);
 
         await transporter.verify();
         console.log("SMTP READY ✅");
@@ -23,18 +23,18 @@ export const verifyMail = async (token, email) => {
         console.log("LINK:", link);
 
         const info = await transporter.sendMail({
-            from: process.env.MAIL_USER,
+            from: `PDF App <${process.env.MAIL_USER}>`,
             to: email,
-            subject: "Verify Email",
-            html: `<a href="${link}">VERIFY</a>`
+            subject: "Verify Your Email",
+            html: `<h2>Click below to verify</h2><a href="${link}">VERIFY</a>`
         });
 
         console.log("MAIL SENT ✅", info.messageId);
 
         return true;
 
-    } catch (err) {
-        console.log("❌ FULL ERROR:", err);
+    } catch (error) {
+        console.log("MAIL ERROR ❌", error.message);
         return false;
     }
 };
