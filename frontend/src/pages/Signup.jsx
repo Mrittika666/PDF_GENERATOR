@@ -25,22 +25,37 @@ const Signup = () => {
     }
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         console.log("FORM DATA:", formData);
+
         try {
-            setIsLoading(true)
-            const res = await axios.post(`${BASE_URL}/user/register`, formData, {
-                headers: { "Content-Type": "application/json" }
-              })
-                toast.success(res.data.message)
-                navigate('/verify')  // go to check email page
+            setIsLoading(true);
+
+            const res = await axios.post(
+                `${BASE_URL}/user/register`,
+                formData,
+                {
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+
+            if (res.data.success) {
+                toast.success(res.data.message);
+
+                // 🔥 FIXED REDIRECT
+                navigate("/verify")
+
+            } else {
+                toast.error(res.data.message || "Signup failed");
             }
-         catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong!")
+
+        } catch (error) {
+            console.log(error);
+            toast.error(error.response?.data?.message || "Something went wrong!");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
 
     return (

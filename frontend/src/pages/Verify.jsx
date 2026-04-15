@@ -19,29 +19,17 @@ export default function Verify() {
                     }
                 );
 
-                console.log("STATUS:", res.status);
-
-                const text = await res.text();
-                console.log("RAW RESPONSE:", text);
-
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch {
-                    alert("Server error ❌");
-                    return;
-                }
+                const data = await res.json();
 
                 if (data.success) {
                     alert("Email Verified ✅");
                     navigate("/login");
                 } else {
-                    alert(data.message || "Verification Failed ❌");
+                    alert("Verification Failed ❌");
                 }
 
             } catch (err) {
-                console.log("VERIFY ERROR:", err);
-                alert("Network error ❌");
+                alert("Server error ❌");
             }
         };
 
