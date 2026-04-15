@@ -19,11 +19,14 @@ export const verifyMail = async (token, email) => {
         // Compile the template
         const template = handlebars.compile(emailTemplateSource)
 
-        // Pass token and frontend URL from .env
         const htmlToSend = template({
             token: encodeURIComponent(token),
-            frontendUrl: process.env.FRONTEND_URL
+            frontendUrl: process.env.FRONTEND_URL || "https://pdf-generator-git-main-mrittikakunti070-7949s-projects.vercel.app"
         });
+
+        console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+        console.log("TOKEN:", token);
+        console.log("FINAL LINK:", `${process.env.FRONTEND_URL}/verify/${token}`);
 
         // Create transporter
         const transporter = nodemailer.createTransport({
