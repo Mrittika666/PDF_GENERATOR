@@ -16,18 +16,10 @@ const app = express();
 
 // 1. Optimized CORS for Production
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-
-        // Explicitly check for your Vercel domain or localhost
-        if (origin.includes("vercel.app") || origin.includes("localhost")) {
-            return callback(null, true);
-        }
-
-        return callback(new Error("Not allowed by CORS"));
-    },
+    origin: "https://pdf-generator-teal.vercel.app", // No function, just the string
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
@@ -36,7 +28,7 @@ app.use(express.json());
 app.use("/api/user", userRoutes);
 
 // 3. Health Check Route (Important for Render)
-app.get("/", (req, res) => res.status(200).send("API is running 🚀"));
+app.get("/", (req, res) => res.status(200).send("API is running "));
 
 // 4. FIX: Start server IMMEDIATELY
 // This prevents the Render "Port Binding" timeout error.
