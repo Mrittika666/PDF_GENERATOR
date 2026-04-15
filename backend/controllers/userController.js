@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 
 export const registerUser = async (req, res) => {
     try {
+        console.log("REQ BODY:", req.body);
         const { username, email, password } = req.body;
         if (!username || !email || !password) {
             return res.status(400).json({
