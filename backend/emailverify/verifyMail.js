@@ -32,14 +32,15 @@ export const verifyMail = async (token, email) => {
 
         // Create transporter
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
             }
         });
-
-        // 🔥 SMTP CHECK
+        
         try {
             await transporter.verify();
             console.log("✅ SMTP VERIFIED SUCCESS");

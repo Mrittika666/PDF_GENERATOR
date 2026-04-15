@@ -1,14 +1,16 @@
 import { verifyMail } from "../emailverify/verifyMail.js";
 import { User } from "../models/userModel.js";
-import { Session } from "../models/sessionModel.js"; // make sure Session is imported
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
+// ======================== REGISTER ========================
 export const registerUser = async (req, res) => {
     try {
         console.log("REQ BODY:", req.body);
+
         const { username, email, password } = req.body;
+
         if (!username || !email || !password) {
             return res.status(400).json({
                 success: false,
@@ -17,6 +19,7 @@ export const registerUser = async (req, res) => {
         }
 
         const existingUser = await User.findOne({ email });
+
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -25,21 +28,33 @@ export const registerUser = async (req, res) => {
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
+
         const newUser = await User.create({
             username,
             email,
-            password: hashPassword
+            password: hashPassword,
+            isVerified: false
         });
 
-        const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, { expiresIn: "10m" });
-        await verifyMail(token, email); // send verification email
+        const token = jwt.sign(
+            { id: newUser._id },
+            process.env.SECRET_KEY,
+            { expiresIn: "10m" }
+        );
+
+        // 🔥 SAFE EMAIL SEND (won't crash server)
+        const mailSent = await verifyMail(token, email);
+
+        if (!mailSent) {
+            console.log("⚠️ Email failed but user created");
+        }
+
         newUser.token = token;
         await newUser.save();
 
         return res.status(201).json({
             success: true,
-            message: "User is successfully registered",
-            data: newUser
+            message: "Signup successful. Check email to verify account."
         });
 
     } catch (error) {
@@ -50,35 +65,24 @@ export const registerUser = async (req, res) => {
     }
 };
 
+// ======================== VERIFY EMAIL ========================
 export const verification = async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
+
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
-                message: "Authorization token is missing or invalid"
+                message: "Token missing"
             });
         }
 
         const token = authHeader.split(" ")[1];
 
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.SECRET_KEY);
-        } catch (err) {
-            if (err.name === "TokenExpiredError") {
-                return res.status(400).json({
-                    success: false,
-                    message: "The registration token has expired"
-                });
-            }
-            return res.status(400).json({
-                success: false,
-                message: "Token verification failed"
-            });
-        }
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
         const user = await User.findById(decoded.id);
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -86,8 +90,9 @@ export const verification = async (req, res) => {
             });
         }
 
+        user.isVerified = true;
         user.token = null;
-        user.isVerified = true; // camelCase
+
         await user.save();
 
         return res.status(200).json({
@@ -96,18 +101,20 @@ export const verification = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({
+        return res.status(400).json({
             success: false,
-            message: error.message
+            message: "Verification failed or expired token"
         });
     }
 };
 
+// ======================== LOGIN ========================
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
+
         if (!user) {
             return res.status(400).json({
                 success: false,
@@ -116,6 +123,7 @@ export const loginUser = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+
         if (!isMatch) {
             return res.status(400).json({
                 success: false,
@@ -123,30 +131,29 @@ export const loginUser = async (req, res) => {
             });
         }
 
-      //  if (!user.isVerified) {
-       //     return res.status(400).json({
-        //        success: false,
-         //       message: "Verify your account first"
-         //   });
-       // }
+        // 🔥 IMPORTANT SECURITY CHECK
+        if (!user.isVerified) {
+            return res.status(400).json({
+                success: false,
+                message: "Please verify your email first"
+            });
+        }
 
-        // ✅ Generate Access Token
         const accessToken = jwt.sign(
             { id: user._id },
             process.env.SECRET_KEY,
             { expiresIn: "15m" }
         );
 
-        // ✅ Generate Refresh Token
         const refreshToken = jwt.sign(
             { id: user._id },
             process.env.SECRET_KEY,
             { expiresIn: "7d" }
         );
 
-        // ✅ Save refresh token & login status in DB
         user.refreshToken = refreshToken;
         user.isLoggedIn = true;
+
         await user.save();
 
         return res.status(200).json({
@@ -164,10 +171,11 @@ export const loginUser = async (req, res) => {
         });
     }
 };
+
+// ======================== LOGOUT ========================
 export const logoutUser = async (req, res) => {
     try {
-
-        const userId = req.userId;   // ✅ FIXED
+        const userId = req.userId;
 
         await User.findByIdAndUpdate(userId, {
             refreshToken: null,
@@ -187,11 +195,11 @@ export const logoutUser = async (req, res) => {
     }
 };
 
+// ======================== FORGOT PASSWORD ========================
 export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // 🔥 Added: Basic validation
         if (!email) {
             return res.status(400).json({
                 success: false,
@@ -201,134 +209,24 @@ export const forgotPassword = async (req, res) => {
 
         const user = await User.findOne({ email });
 
-        // 🔥 Security improvement:
-        // Do not reveal whether user exists or not
         if (!user) {
             return res.status(200).json({
                 success: true,
-                message: "If this email is registered, OTP has been sent"
+                message: "If email exists, OTP sent"
             });
         }
 
-        // 🔥 Generate secure 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         user.resetOtp = otp;
-        user.resetOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.resetOtpExpiry = Date.now() + 10 * 60 * 1000;
 
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASS
-            }
-        });
-
-        const info = await transporter.sendMail({
-            from: process.env.MAIL_USER,
-            to: user.email,
-            subject: "Password Reset OTP",
-            html: `<h2>${otp}</h2>`
-        });
-
-        console.log("EMAIL SENT SUCCESS:", info.messageId);
-
-        res.status(200).json({
-            success: true,
-            message: "OTP sent to your email"
-        });
-
-    } catch (error) {
-        console.log("EMAIL ERROR:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Email sending failed"
-        });
-    }
-};
-
-export const resetPasswordWithOtp = async (req, res) => {
-    try {
-        const { email, otp, newPassword } = req.body;
-
-
-        if (!email || !otp || !newPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required"
-            });
-        }
-
-        const user = await User.findOne({
-            email,
-            resetOtp: otp,
-            resetOtpExpiry: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid or expired OTP"
-            });
-        }
-
-
-        if (newPassword.length < 8) {
-            return res.status(400).json({
-                success: false,
-                message: "Password must be at least 8 characters"
-            });
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        user.password = hashedPassword;
-
-
-        user.resetOtp = null;
-        user.resetOtpExpiry = null;
-
-        await user.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Password reset successful"
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
-
-export const resendResetOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        // Generate new OTP
-        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        user.resetOtp = newOtp;
-        user.resetOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-        await user.save();
-
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
@@ -338,191 +236,22 @@ export const resendResetOtp = async (req, res) => {
         await transporter.sendMail({
             from: process.env.MAIL_USER,
             to: user.email,
-            subject: "Resend Password Reset OTP",
-            html: `
-          <h3>Your New OTP</h3>
-          <h2>${newOtp}</h2>
-          <p>This OTP will expire in 10 minutes.</p>
-        `
+            subject: "Password Reset OTP",
+            html: `<h2>${otp}</h2>`
         });
 
-        res.status(200).json({
+        console.log("OTP EMAIL SENT");
+
+        return res.status(200).json({
             success: true,
-            message: "New OTP sent to your email"
+            message: "OTP sent to email"
         });
 
     } catch (error) {
-        res.status(500).json({
+        console.log(error);
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Email sending failed"
         });
-    }
-};
-
-export const changePassword = async (req, res) => {
-    try {
-        const userId = req.userId; // from JWT middleware
-        const { oldPassword, newPassword } = req.body;
-
-        const user = await User.findById(userId);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        // Check old password
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
-
-        if (!isMatch) {
-            return res.status(400).json({
-                success: false,
-                message: "Old password is incorrect"
-            });
-        }
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        user.password = hashedPassword;
-        await user.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Password changed successfully"
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
-
-export const verifyOtp = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-
-
-        const user = await User.findOne({
-            email,
-            resetOtp: otp,
-            resetOtpExpiry: { $gt: Date.now() }
-        });
-
-        if (!user) {
-
-            return res.status(400).json({
-                success: false,
-                message: "Invalid or expired OTP"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "OTP verified successfully"
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-import puppeteer from 'puppeteer';
-
-export const generatePdf = async (req, res) => {
-    try {
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            headless: true
-        });
-
-        const page = await browser.newPage();
-
-        const htmlContent = `
-            <h1 style="color: green;">Success!</h1>
-            <p>PDF generated for ${req.userId}</p>
-        `;
-
-        await page.setContent(htmlContent);
-
-        const pdfBuffer = await page.pdf({ format: 'A4' });
-
-        await browser.close();
-
-        res.set({ 'Content-Type': 'application/pdf' });
-        res.send(pdfBuffer);
-
-    } catch (error) {
-        console.log("PDF ERROR:", error);
-        res.status(500).send("PDF generation failed: " + error.message);
-    }
-};
-
-
-
-export const upgradeToPremium = async (req, res) => {
-    try {
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-
-        user.subscription = "premium";
-        user.pdfCount = 0;
-
-        await user.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Success! Your account is now Premium."
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-
-// 1. Save File Record
-export const saveFileRecord = async (req, res) => {
-    try {
-        const { email, fileName } = req.body;
-        const user = await User.findOneAndUpdate(
-            { email },
-            {
-                $push: { files: { fileName } }, // Array mein file add karein
-                $inc: { generatedCount: 1 }     // Count 1 badhayein
-            },
-            { new: true }
-        );
-        res.status(200).json({ success: true, files: user.files });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-// 2. Get All Files (Read)
-export const getUserFiles = async (req, res) => {
-    try {
-        const user = await User.findOne({ email: req.params.email });
-        res.status(200).json({ success: true, files: user.files });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-// 3. Delete File (Delete)
-export const deleteFile = async (req, res) => {
-    try {
-        const { email, fileId } = req.body;
-        const user = await User.findOneAndUpdate(
-            { email },
-            { $pull: { files: { _id: fileId } } }, // ID se file remove karein
-            { new: true }
-        );
-        res.status(200).json({ success: true, files: user.files });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
     }
 };
