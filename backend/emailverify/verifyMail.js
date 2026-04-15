@@ -10,7 +10,12 @@ const __dirname = path.dirname(__filename);
 
 export const verifyMail = async (token, email) => {
     try {
-        console.log("📩 VERIFY MAIL TRIGGERED");
+        console.log("🔥 VERIFY MAIL FUNCTION CALLED");
+        console.log("📩 Recipient:", email);
+
+        // 🔍 DEBUG ENV CHECK
+        console.log("MAIL_USER:", process.env.MAIL_USER);
+        console.log("MAIL_PASS length:", process.env.MAIL_PASS?.length);
 
         // Read template
         const emailTemplateSource = fs.readFileSync(
@@ -18,18 +23,12 @@ export const verifyMail = async (token, email) => {
             "utf-8"
         );
 
-        // Compile template
         const template = handlebars.compile(emailTemplateSource);
 
         const htmlToSend = template({
             token: encodeURIComponent(token),
-            frontendUrl:
-                process.env.FRONTEND_URL ||
-                "https://pdf-generator-teal.vercel.app"
+            frontendUrl: process.env.FRONTEND_URL
         });
-
-        console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-        console.log("RECIPIENT EMAIL:", email);
 
         // Create transporter
         const transporter = nodemailer.createTransport({
@@ -40,30 +39,31 @@ export const verifyMail = async (token, email) => {
             }
         });
 
-        // IMPORTANT: verify SMTP before sending (debug help)
-        await transporter.verify();
-        console.log("✅ SMTP CONNECTION SUCCESS");
+        // 🔥 SMTP CHECK
+        try {
+            await transporter.verify();
+            console.log("✅ SMTP VERIFIED SUCCESS");
+        } catch (err) {
+            console.log("❌ SMTP VERIFY FAILED:", err.message);
+            return false;
+        }
 
-        // Mail options
-        const mailConfigurations = {
+        // Send mail
+        const info = await transporter.sendMail({
             from: `PDF Generator <${process.env.MAIL_USER}>`,
             to: email,
             subject: "Email Verification",
             html: htmlToSend
-        };
-
-        // SEND MAIL (ASYNC FIX)
-        const info = await transporter.sendMail(mailConfigurations);
+        });
 
         console.log("✅ EMAIL SENT SUCCESSFULLY");
         console.log("Message ID:", info.messageId);
 
         return true;
-    } catch (error) {
-        console.error("❌ EMAIL SENDING FAILED:");
-        console.error(error.message || error);
 
-        // IMPORTANT: don't crash server
+    } catch (error) {
+        console.error("❌ EMAIL FAILED:");
+        console.error(error.message || error);
         return false;
     }
 };
