@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config();
-console.log("ENV TEST:", process.env.MONGO_URI);// ← explicit path
 
 import express from "express";
 import cors from "cors";
@@ -14,11 +13,14 @@ import connectDB from "./database/db.js";
 import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
-app.use(express.json());
+
+// 1. Optimized CORS for Production
 app.use(cors({
     origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
 
+        // Explicitly check for your Vercel domain or localhost
         if (origin.includes("vercel.app") || origin.includes("localhost")) {
             return callback(null, true);
         }
@@ -28,19 +30,26 @@ app.use(cors({
     credentials: true,
 }));
 
-app.use("/api/user", userRoutes);
-app.get("/", (req, res) => res.send("API is running 🚀"));
+app.use(express.json());
 
+// 2. Routes
+app.use("/api/user", userRoutes);
+
+// 3. Health Check Route (Important for Render)
+app.get("/", (req, res) => res.status(200).send("API is running 🚀"));
+
+// 4. FIX: Start server IMMEDIATELY
+// This prevents the Render "Port Binding" timeout error.
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is live and listening on port ${PORT} ✅`);
+});
+
+// 5. Connect to Database in the background
 connectDB()
     .then(() => {
-        console.log("MongoDB connected ✅"); // 👈 added
-
-        const PORT = process.env.PORT || 3000;
-
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
+        console.log("MongoDB Connection Established ✅");
     })
     .catch((err) => {
-        console.log("DB Connection Failed ❌:", err);
+        console.error("Critical: MongoDB Connection Failed ❌", err);
     });

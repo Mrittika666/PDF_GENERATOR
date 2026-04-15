@@ -6,10 +6,17 @@ export const verifyMail = async (token, email) => {
         console.log("👉 MAIL_USER:", process.env.MAIL_USER);
         console.log("👉 MAIL_PASS LENGTH:", process.env.MAIL_PASS?.length);
 
-        const transporter = nodemailer.createTransport({
+        /*const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
             port: 587,
             secure: false,
+            auth: {
+                user: process.env.MAIL_USER,
+                pass: process.env.MAIL_PASS
+            }
+        });*/
+        const transporter = nodemailer.createTransport({
+            service: "gmail", // Use service instead of host/port for simpler config
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
