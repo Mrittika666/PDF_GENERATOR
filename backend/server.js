@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-dotenv.config({ path: join(__dirname, '.env') });
+dotenv.config();
 console.log("ENV TEST:", process.env.MONGO_URI);// ← explicit path
 
 import express from "express";
@@ -16,7 +16,7 @@ import userRoute from "./routes/userRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: process.env.FRONTEND_URL,//"http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
 }));
 
