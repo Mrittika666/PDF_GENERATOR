@@ -28,7 +28,7 @@ const Signup = () => {
         e.preventDefault()
         try {
             setIsLoading(true)
-            const res = await axios.post(`${BASE_URL}/user/register`, formData {
+            const res = await axios.post(`${BASE_URL}/user/register`, formData, {
                 headers: { "Content-Type": "application/json" }
               })
                 toast.success(res.data.message)
