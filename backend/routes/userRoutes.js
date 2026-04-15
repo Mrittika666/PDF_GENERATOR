@@ -7,40 +7,41 @@ import {
     forgotPassword,
     resetPasswordWithOtp,
     resendResetOtp,
-    changePassword,
     verifyOtp,
     upgradeToPremium,
     saveFileRecord,
     getUserFiles,
-    deleteFile// Ensure this is here
+    deleteFile
 } from "../controllers/userController.js";
+
 import { isAuthenticated } from "../middleware/isAuthenticated.js";
-
-
-
 
 const router = express.Router();
 
-// Public Routes
+// ================= PUBLIC ROUTES =================
 router.post("/register", registerUser);
 router.post("/verify", verification);
 router.post("/login", loginUser);
+
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPasswordWithOtp);
 router.post("/resend-otp", resendResetOtp);
 
-// Protected Routes (Require Login)
+// ================= PROTECTED ROUTES =================
 router.post("/logout", isAuthenticated, logoutUser);
-router.post("/change-password", isAuthenticated, changePassword);
 router.post("/upgrade-premium", isAuthenticated, upgradeToPremium);
-// Naye routes add karein
+
+
+
+// ================= FILE ROUTES =================
 router.post("/save-file", saveFileRecord);
 router.get("/get-files/:email", getUserFiles);
 router.post("/delete-file", deleteFile);
-router.post("/login", loginUser);
 
+// ================= TEST ROUTE =================
 router.get("/", (req, res) => {
     res.send("User route working");
 });
+
 export default router;
