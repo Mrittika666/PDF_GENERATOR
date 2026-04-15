@@ -430,30 +430,33 @@ export const verifyOtp = async (req, res) => {
     }
 };
 
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 
 export const generatePdf = async (req, res) => {
     try {
         const browser = await puppeteer.launch({
-            // Windows users ke liye Chrome ka default path:
-            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             headless: true
         });
 
         const page = await browser.newPage();
 
-        // ... baki sara code same rahega ...
-        const htmlContent = `<h1 style="color: green;">Success!</h1><p>PDF generated for ${req.userId}</p>`;
+        const htmlContent = `
+            <h1 style="color: green;">Success!</h1>
+            <p>PDF generated for ${req.userId}</p>
+        `;
 
         await page.setContent(htmlContent);
+
         const pdfBuffer = await page.pdf({ format: 'A4' });
 
         await browser.close();
 
         res.set({ 'Content-Type': 'application/pdf' });
         res.send(pdfBuffer);
+
     } catch (error) {
-        console.log(error);
+        console.log("PDF ERROR:", error);
         res.status(500).send("PDF generation failed: " + error.message);
     }
 };
