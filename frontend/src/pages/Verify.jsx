@@ -19,24 +19,29 @@ export default function Verify() {
                     }
                 );
 
-                const data = await res.json();
-                console.log("VERIFY RESPONSE:", data);
+                console.log("STATUS:", res.status);
+
+                const text = await res.text();
+                console.log("RAW RESPONSE:", text);
+
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    alert("Server error ❌");
+                    return;
+                }
 
                 if (data.success) {
                     alert("Email Verified ✅");
-
-                    // 👉 1 sec wait then redirect
-                    setTimeout(() => {
-                        navigate("/login");
-                    }, 1000);
-
+                    navigate("/login");
                 } else {
-                    alert("Verification Failed ❌");
+                    alert(data.message || "Verification Failed ❌");
                 }
 
             } catch (err) {
                 console.log("VERIFY ERROR:", err);
-                alert("Something went wrong");
+                alert("Network error ❌");
             }
         };
 
