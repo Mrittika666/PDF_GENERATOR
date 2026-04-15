@@ -41,6 +41,7 @@ const Signup = () => {
         }
     }
 
+
     return (
         <div className="relative w-full min-h-screen">
             <div className="fixed inset-0 w-full h-full bg-cover bg-center z-0" style={{ backgroundImage: `url(${Background})` }}></div>
@@ -52,36 +53,32 @@ const Signup = () => {
                             <CardTitle className="text-2xl text-center text-green-600">Sign Up</CardTitle>
                             <CardDescription className="text-center">Create your account to get started with PDF generators</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col gap-6">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="username">Full Name</Label>
-                                    <Input id="username" name="username" value={formData.username} onChange={handleChange} placeholder="Enter your full name" required />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="m@example.com" required />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="password">Password</Label>
-                                    <div className="relative">
-                                        <Input id="password" name="password" value={formData.password} onChange={handleChange} type={showPassword ? "text" : "password"} placeholder="Enter your password" required />
-                                        <Button variant='ghost' size="sm" className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent' onClick={() => setShowPassword(!showPassword)} disabled={isLoading}>
-                                            {showPassword ? <EyeOff className="w-4 h-4 text-gray-600" /> : <Eye className="w-4 h-4 text-gray-600" />}
-                                        </Button>
+                        <form onSubmit={handleSubmit}>
+                            <CardContent>
+                                <div className="flex flex-col gap-6">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="username">Full Name</Label>
+                                        <Input name="username" value={formData.username} onChange={handleChange} required />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input type="email" name="email" value={formData.email} onChange={handleChange} required />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label>Password</Label>
+                                        <Input name="password" value={formData.password} onChange={handleChange} required />
                                     </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex-col gap-2">
-                            <Button onClick={handleSubmit} className="w-full bg-green-600 hover:bg-green-500">
-                                {isLoading ? <><Loader2 className='mr-2 h-4 w-4 animate-spin' />Creating account..</> : "Sign Up"}
-                            </Button>
-                            <div className="flex justify-center w-full text-sm items-center mt-2">
-                                <span className="text-blue-950 mr-1">Already have an account?</span>
-                                <Link to="/login" className="text-green-500 hover:underline">Login</Link>
-                            </div>
-                        </CardFooter>
+                            </CardContent>
+
+                            <CardFooter>
+                                <Button type="submit" className="w-full bg-green-600">
+                                    Sign Up
+                                </Button>
+                            </CardFooter>
+                        </form>
                     </Card>
                 </div>
             </div>
