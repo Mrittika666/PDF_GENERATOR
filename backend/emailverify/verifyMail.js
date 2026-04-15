@@ -1,48 +1,36 @@
 import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import handlebars from "handlebars";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export const verifyMail = async (token, email) => {
     try {
-        console.log("🔥 VERIFY MAIL TRIGGERED");
-
-        const emailTemplateSource = fs.readFileSync(
-            path.join(__dirname, "template.hbs"),
-            "utf-8"
-        );
-
-        const template = handlebars.compile(emailTemplateSource);
-
-        const htmlToSend = template({
-            token: encodeURIComponent(token),
-            frontendUrl: process.env.FRONTEND_URL
-        });
+        console.log("🔥 VERIFY MAIL FUNCTION CALLED");
 
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
             }
         });
 
-        const info = await transporter.sendMail({
-            from: `PDF Generator <${process.env.MAIL_USER}>`,
+        const verifyUrl = `${process.env.FRONTEND_URL}/verify/${token}`;
+
+        await transporter.sendMail({
+            from: process.env.MAIL_USER,
             to: email,
-            subject: "Email Verification",
-            html: htmlToSend
+            subject: "Verify your email",
+            html: `
+                <h2>Email Verification</h2>
+                <a href="${verifyUrl}">Click to Verify</a>
+            `
         });
 
-        console.log("✅ EMAIL SENT SUCCESSFULLY:", info.messageId);
+        console.log("✅ MAIL SENT");
+        return true;
 
-        return true; // IMPORTANT
     } catch (error) {
-        console.log("❌ EMAIL ERROR:", error.message);
+        console.log("❌ MAIL ERROR:", error);
         return false;
     }
 };
