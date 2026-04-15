@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import BASE_URL from "../config";
 
 const Verify = () => {
     const { token } = useParams();
@@ -10,9 +11,16 @@ const Verify = () => {
     useEffect(() => {
         const verifyEmail = async () => {
             try {
-                const res = await axios.post("http://localhost:3000/user/verify", {}, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await axios.post(
+                    `${BASE_URL}/user/verify`,
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+
                 if (res.data.success) {
                     setStatus("✅ Email Verified Successfully");
                     setTimeout(() => navigate("/login"), 2000);
@@ -20,16 +28,20 @@ const Verify = () => {
                     setStatus("❌ Invalid or Expired Token");
                 }
             } catch (error) {
+                console.log(error);
                 setStatus("❌ Verification Failed. Please try again");
             }
         };
+
         verifyEmail();
     }, [token, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-green-100">
             <div className="bg-white p-6 rounded-xl shadow-md text-center w-[90%] max-w-md">
-                <h2 className="text-xl font-semibold text-gray-800">{status}</h2>
+                <h2 className="text-xl font-semibold text-gray-800">
+                    {status}
+                </h2>
             </div>
         </div>
     );
